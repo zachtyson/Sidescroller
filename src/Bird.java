@@ -7,7 +7,7 @@ public class Bird extends JLabel {
     Bird() {
         this.setBackground(Color.BLUE);
         this.setOpaque(true);
-        this.setBounds(200,200,40,40);
+        this.setBounds(150,200,60,60);
     }
     public int getVelocity() {
         return velocity;

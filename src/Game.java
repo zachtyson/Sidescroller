@@ -11,6 +11,10 @@ public class Game extends JFrame implements KeyListener {
     final int GAME_DIM = 600;
     Timer tick;
     int velocity;
+    int sideVelocity = 5;
+    int pipeSpacing = 140;
+
+    Pipes[] topPipe;
     Game() {
         this.setTitle("Flappy Bird");
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -25,6 +29,15 @@ public class Game extends JFrame implements KeyListener {
         this.add(label);
         this.setVisible(true);
 
+        topPipe = new Pipes[5];
+        topPipe[0] = new Pipes(0, -600);
+
+
+        for (int i = 0; i < topPipe.length;i++) {
+            topPipe[i] = new Pipes(pipeSpacing*i, -600);
+            this.add(topPipe[i]);
+        }
+
         tick = new Timer();
         tick.schedule(new TimerTask() {
             @Override
@@ -34,8 +47,9 @@ public class Game extends JFrame implements KeyListener {
                     ChangeY(velocity);
                     velocity = velocity - 5;
                 }
+                scrollMap();
             }
-        }, 0, 50);
+        }, 0, TICK_RATE);
 
     }
 
@@ -60,5 +74,10 @@ public class Game extends JFrame implements KeyListener {
     }
     public void ChangeY(int velocity) {
         label.setLocation(label.getX(), label.getY() - velocity);
+    }
+    public void scrollMap() {
+        for(int i = 0; i < topPipe.length; i++) {
+            topPipe[i].setLocation(topPipe[i].getX() - 5,topPipe[i].getY());
+        }
     }
 }
