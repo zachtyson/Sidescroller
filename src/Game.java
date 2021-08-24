@@ -21,6 +21,8 @@ public class Game extends JFrame implements KeyListener {
     Pipes[] topPipe;
     Pipes[] bottomPipe;
 
+    boolean paused = false;
+
     Game() {
         this.setTitle("Flappy Bird");
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -41,7 +43,7 @@ public class Game extends JFrame implements KeyListener {
         bottomPipe[0] = new Pipes(0,-600);
 
         Random randNum = new Random();
-        randNum.setSeed(10);
+        randNum.setSeed(1121210);
         int random;
 
         for (int i = 0; i < topPipe.length;i++) {
@@ -53,14 +55,7 @@ public class Game extends JFrame implements KeyListener {
 
         }
 
-        tick = new Timer();
-        tick.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Gravity();
-                scrollMap();
-            }
-        }, 0, TICK_TIME);
+        play();
 
     }
 
@@ -74,6 +69,28 @@ public class Game extends JFrame implements KeyListener {
         if (e.getKeyCode() == 32) {
             velocity = 35;
         }
+        if(e.getKeyChar() == 'p' || e.getKeyChar() == 'P') {
+            if(paused) {
+                play();
+                paused = false;
+            } else {
+                pause();
+                paused = true;
+            }
+        }
+    }
+    public void pause() {
+        tick.cancel();
+    }
+    public void play() {
+        tick = new Timer();
+        tick.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Gravity();
+                scrollMap();
+            }
+        }, 0, TICK_TIME);
     }
 
     @Override
@@ -89,7 +106,9 @@ public class Game extends JFrame implements KeyListener {
 
     }
     public void scrollMap() {
-        checkCollision();
+        if(checkCollision()) {
+            tick.cancel();
+        }
         for (Pipes pipes : topPipe) {
             pipes.setLocation(pipes.getX() - sideVelocity, pipes.getY());
             if (pipes.getX() < -sideMargins) {
@@ -105,16 +124,19 @@ public class Game extends JFrame implements KeyListener {
 
     }
 
-    public void checkCollision() {
+    public boolean checkCollision() {
         for (Pipes pipes : topPipe) {
             if (pipes.getBounds().intersects(label.getBounds())) {
                 System.out.println("Intersect");
+                return true;
             }
         }
         for (Pipes pipes : bottomPipe) {
             if (pipes.getBounds().intersects(label.getBounds())) {
                 System.out.println("Intersect");
+                return true;
             }
         }
+        return false;
     }
 }
