@@ -1,7 +1,12 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.Buffer;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -9,7 +14,7 @@ import java.util.TimerTask;
 
 public class Game extends JFrame implements KeyListener {
     final int TICK_TIME = 20; //time in ms between ticks
-    Bird label;
+    Bird birdy;
     public static final int GAME_DIM = 600;
     public static final int sideMargins = 200;
     Timer tick;
@@ -22,6 +27,10 @@ public class Game extends JFrame implements KeyListener {
     Pipes[] bottomPipe;
 
     boolean paused = false;
+    Random randNum;
+
+    JPanel ground;
+
 
     Game() {
         this.setTitle("Flappy Bird");
@@ -31,29 +40,32 @@ public class Game extends JFrame implements KeyListener {
         this.setLayout(null);
         this.setLocationRelativeTo(null);
 
-        label = new Bird();
+        birdy = new Bird();
+
+        ground = new JPanel();
+        ground.setBackground(Color.green);
+        ground.setBounds(0, 550, 1000,100);
+        this.add(ground);
 
         this.addKeyListener(this);
-        this.add(label);
+        this.add(birdy);
         this.setVisible(true);
 
+
         topPipe = new Pipes[numPipes];
-
         bottomPipe = new Pipes[numPipes];
-        bottomPipe[0] = new Pipes(0,-600);
 
-        Random randNum = new Random();
+        randNum = new Random();
         randNum.setSeed(1121210);
-        int random;
+
 
         for (int i = 0; i < topPipe.length;i++) {
-            random = randNum.nextInt(40);
-            topPipe[i] = new Pipes(pipeSpacing*i, -random*10 - 350);
+            topPipe[i] = new Pipes(pipeSpacing*i, -700);
             this.add(topPipe[i]);
-            bottomPipe[i] = new Pipes(pipeSpacing*i, 550 - random*10);
+            bottomPipe[i] = new Pipes(pipeSpacing*i, 600);
             this.add(bottomPipe[i]);
-
         }
+
 
         play();
 
@@ -98,27 +110,29 @@ public class Game extends JFrame implements KeyListener {
 
     }
     public void Gravity() {
-        label.setLocation(label.getX(), label.getY() - velocity);
+        birdy.setLocation(birdy.getX(), birdy.getY() - velocity);
         if(velocity > 0) {
             velocity = velocity - 2;
         }
-        label.setLocation(label.getX(), label.getY() + 15);
+        birdy.setLocation(birdy.getX(), birdy.getY() + 15);
 
     }
     public void scrollMap() {
         if(checkCollision()) {
             tick.cancel();
         }
+        int random = randNum.nextInt(40);
         for (Pipes pipes : topPipe) {
             pipes.setLocation(pipes.getX() - sideVelocity, pipes.getY());
             if (pipes.getX() < -sideMargins) {
-                pipes.setLocation(GAME_DIM+sideMargins, pipes.getY());
+                pipes.setLocation(GAME_DIM+sideMargins, -random*10 - 340);
+
             }
         }
         for (Pipes pipes : bottomPipe) {
             pipes.setLocation(pipes.getX() - sideVelocity, pipes.getY());
             if (pipes.getX() < -sideMargins) {
-                pipes.setLocation(GAME_DIM+sideMargins, pipes.getY());
+                pipes.setLocation(GAME_DIM+sideMargins, 550 - random*10);
             }
         }
 
@@ -126,17 +140,17 @@ public class Game extends JFrame implements KeyListener {
 
     public boolean checkCollision() {
         for (Pipes pipes : topPipe) {
-            if (pipes.getBounds().intersects(label.getBounds())) {
+            if (pipes.getBounds().intersects(birdy.getBounds())) {
                 System.out.println("Intersect");
                 return true;
             }
         }
         for (Pipes pipes : bottomPipe) {
-            if (pipes.getBounds().intersects(label.getBounds())) {
+            if (pipes.getBounds().intersects(birdy.getBounds())) {
                 System.out.println("Intersect");
                 return true;
             }
         }
-        return false;
+        return birdy.getBounds().intersects(ground.getBounds());
     }
 }
