@@ -2,19 +2,25 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
+
 public class Game extends JFrame implements KeyListener {
-    public final int TICK_RATE = 50; //time in ms between ticks
+    final int TICK_TIME = 20; //time in ms between ticks
     Bird label;
-    final int GAME_DIM = 600;
+    public static final int GAME_DIM = 600;
+    public static final int sideMargins = 200;
     Timer tick;
     int velocity;
     int sideVelocity = 5;
-    int pipeSpacing = 140;
+    public static int numPipes = 4;
+    public static int pipeSpacing = (GAME_DIM + sideMargins*2)/numPipes;
 
     Pipes[] topPipe;
+    Pipes[] bottomPipe;
+
     Game() {
         this.setTitle("Flappy Bird");
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -29,13 +35,22 @@ public class Game extends JFrame implements KeyListener {
         this.add(label);
         this.setVisible(true);
 
-        topPipe = new Pipes[5];
-        topPipe[0] = new Pipes(0, -600);
+        topPipe = new Pipes[numPipes];
 
+        bottomPipe = new Pipes[numPipes];
+        bottomPipe[0] = new Pipes(0,-600);
+
+        Random randNum = new Random();
+        randNum.setSeed(10);
+        int random;
 
         for (int i = 0; i < topPipe.length;i++) {
-            topPipe[i] = new Pipes(pipeSpacing*i, -600);
+            random = randNum.nextInt(40);
+            topPipe[i] = new Pipes(pipeSpacing*i, -random*10 - 350);
             this.add(topPipe[i]);
+            bottomPipe[i] = new Pipes(pipeSpacing*i, 550 - random*10);
+            this.add(bottomPipe[i]);
+
         }
 
         tick = new Timer();
@@ -43,13 +58,9 @@ public class Game extends JFrame implements KeyListener {
             @Override
             public void run() {
                 Gravity();
-                if(velocity > 0) {
-                    ChangeY(velocity);
-                    velocity = velocity - 5;
-                }
                 scrollMap();
             }
-        }, 0, TICK_RATE);
+        }, 0, TICK_TIME);
 
     }
 
@@ -61,7 +72,7 @@ public class Game extends JFrame implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == 32) {
-            velocity = 50;
+            velocity = 35;
         }
     }
 
@@ -70,14 +81,40 @@ public class Game extends JFrame implements KeyListener {
 
     }
     public void Gravity() {
-        label.setLocation(label.getX(), label.getY() + 20);
-    }
-    public void ChangeY(int velocity) {
         label.setLocation(label.getX(), label.getY() - velocity);
+        if(velocity > 0) {
+            velocity = velocity - 2;
+        }
+        label.setLocation(label.getX(), label.getY() + 15);
+
     }
     public void scrollMap() {
-        for(int i = 0; i < topPipe.length; i++) {
-            topPipe[i].setLocation(topPipe[i].getX() - 5,topPipe[i].getY());
+        checkCollision();
+        for (Pipes pipes : topPipe) {
+            pipes.setLocation(pipes.getX() - sideVelocity, pipes.getY());
+            if (pipes.getX() < -sideMargins) {
+                pipes.setLocation(GAME_DIM+sideMargins, pipes.getY());
+            }
+        }
+        for (Pipes pipes : bottomPipe) {
+            pipes.setLocation(pipes.getX() - sideVelocity, pipes.getY());
+            if (pipes.getX() < -sideMargins) {
+                pipes.setLocation(GAME_DIM+sideMargins, pipes.getY());
+            }
+        }
+
+    }
+
+    public void checkCollision() {
+        for (Pipes pipes : topPipe) {
+            if (pipes.getBounds().intersects(label.getBounds())) {
+                System.out.println("Intersect");
+            }
+        }
+        for (Pipes pipes : bottomPipe) {
+            if (pipes.getBounds().intersects(label.getBounds())) {
+                System.out.println("Intersect");
+            }
         }
     }
 }
